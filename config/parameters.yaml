@@ -1,0 +1,230 @@
+# ============================================================
+# config/parameters.yaml — Parameter Ranges สำหรับ Optimization
+# ============================================================
+
+# ช่วงค่าสำหรับ Grid Search / Bayesian Optimization
+
+# ================================
+# Grid Strategy Parameters
+# ================================
+grid_parameters:
+  num_grids:
+    min: 5
+    max: 25
+    step: 1
+    default: 10
+    description: "จำนวน Grid levels"
+
+  grid_spacing_pct:
+    min: 0.005
+    max: 0.060
+    step: 0.005
+    default: 0.020
+    description: "ระยะห่างระหว่าง Grid (% ของราคา)"
+
+  position_size_pct:
+    min: 0.02
+    max: 0.15
+    step: 0.01
+    default: 0.05
+    description: "ขนาด position ต่อ Grid (% ของ capital)"
+
+  rebalance_frequency:
+    options: ["daily", "weekly", "monthly"]
+    default: "weekly"
+    description: "ความถี่การ rebalance Grid"
+
+# ================================
+# Risk Management Parameters
+# ================================
+risk_parameters:
+  stop_loss_pct:
+    min: 0.03
+    max: 0.15
+    step: 0.01
+    default: 0.08
+    description: "Stop loss percentage"
+
+  trailing_stop_pct:
+    min: 0.02
+    max: 0.10
+    step: 0.01
+    default: 0.05
+    description: "Trailing stop percentage"
+
+  max_drawdown_pct:
+    min: 0.08
+    max: 0.25
+    step: 0.01
+    default: 0.15
+    description: "Maximum allowed drawdown"
+
+  max_daily_loss_pct:
+    min: 0.01
+    max: 0.05
+    step: 0.005
+    default: 0.03
+    description: "Maximum daily loss before circuit breaker"
+
+  kelly_fraction:
+    min: 0.10
+    max: 0.50
+    step: 0.05
+    default: 0.25
+    description: "Fraction of Kelly Criterion to use"
+
+  max_position_pct:
+    min: 0.10
+    max: 0.40
+    step: 0.05
+    default: 0.20
+    description: "Maximum position size as % of capital"
+
+# ================================
+# Regime Adjustment Parameters
+# ================================
+regime_adjustment_parameters:
+  trending_spacing_multiplier:
+    min: 1.2
+    max: 2.5
+    step: 0.1
+    default: 1.5
+
+  ranging_spacing_multiplier:
+    min: 0.5
+    max: 1.0
+    step: 0.1
+    default: 0.8
+
+  volatile_spacing_multiplier:
+    min: 1.5
+    max: 3.0
+    step: 0.25
+    default: 2.0
+
+  trending_grids_multiplier:
+    min: 0.5
+    max: 1.0
+    step: 0.1
+    default: 0.7
+
+  ranging_grids_multiplier:
+    min: 1.0
+    max: 1.5
+    step: 0.1
+    default: 1.2
+
+  volatile_grids_multiplier:
+    min: 0.3
+    max: 0.7
+    step: 0.1
+    default: 0.5
+
+# ================================
+# AI Model Hyperparameters
+# ================================
+model_hyperparameters:
+  # Random Forest (Regime Detector)
+  random_forest:
+    n_estimators:
+      options: [50, 100, 200, 300, 500]
+      default: 200
+    max_depth:
+      options: [5, 8, 10, 15, 20, null]
+      default: 10
+    min_samples_split:
+      options: [10, 20, 30, 50]
+      default: 20
+    min_samples_leaf:
+      options: [5, 10, 15, 20]
+      default: 10
+    max_features:
+      options: ["sqrt", "log2", 0.3, 0.5]
+      default: "sqrt"
+
+  # LSTM (Volatility Predictor)
+  lstm:
+    sequence_length:
+      options: [10, 20, 30, 60]
+      default: 30
+    lstm_units_layer1:
+      options: [32, 64, 128, 256]
+      default: 64
+    lstm_units_layer2:
+      options: [16, 32, 64]
+      default: 32
+    dropout_rate:
+      min: 0.1
+      max: 0.5
+      step: 0.1
+      default: 0.2
+    learning_rate:
+      options: [0.0001, 0.0005, 0.001, 0.005, 0.01]
+      default: 0.001
+    batch_size:
+      options: [16, 32, 64, 128]
+      default: 32
+    epochs:
+      min: 50
+      max: 300
+      default: 100
+
+# ================================
+# Feature Engineering Parameters
+# ================================
+feature_parameters:
+  # Moving Averages
+  sma_periods:
+    options: [5, 10, 20, 50, 100, 200]
+    default: [20, 50, 200]
+
+  ema_periods:
+    options: [5, 10, 20, 50, 100]
+    default: [10, 20, 50]
+
+  # Momentum
+  rsi_period:
+    min: 7
+    max: 21
+    step: 1
+    default: 14
+
+  stochastic_period:
+    options: [9, 14, 21]
+    default: 14
+
+  # Volatility
+  atr_period:
+    options: [7, 14, 21]
+    default: 14
+
+  bollinger_period:
+    options: [10, 20, 30]
+    default: 20
+
+  bollinger_std:
+    options: [1.5, 2.0, 2.5]
+    default: 2.0
+
+  # MACD
+  macd_fast:
+    options: [8, 12, 15]
+    default: 12
+  macd_slow:
+    options: [21, 26, 30]
+    default: 26
+  macd_signal:
+    options: [7, 9, 11]
+    default: 9
+
+# ================================
+# Optimization Settings
+# ================================
+optimization:
+  method: "grid_search"            # "grid_search", "random_search", "bayesian"
+  n_trials: 200                    # สำหรับ random_search / bayesian
+  cv_folds: 5                      # Cross-validation folds
+  scoring_metric: "sharpe_ratio"   # Metric สำหรับ scoring
+  n_jobs: -1                       # ใช้ทุก CPU cores
+  random_state: 42
+  early_stopping_rounds: 20        # สำหรับ bayesian optimization

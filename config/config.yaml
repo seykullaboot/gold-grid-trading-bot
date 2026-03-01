@@ -1,0 +1,166 @@
+# ============================================================
+# config/config.yaml — การตั้งค่าหลักของ Gold Grid Trading Bot
+# ============================================================
+
+# ข้อมูลโปรเจกต์
+project:
+  name: "Gold Grid Trading Bot"
+  version: "1.0.0"
+  description: "ระบบเทรดทองคำอัตโนมัติด้วย AI Adaptive Grid Strategy"
+  author: "Gold Grid Trading Bot Team"
+
+# =============================
+# การตั้งค่าข้อมูล (Data)
+# =============================
+data:
+  ticker: "GLD"                    # SPDR Gold Shares ETF
+  benchmark_ticker: "SPY"          # S&P 500 ETF สำหรับเปรียบเทียบ
+  start_date: "2004-01-01"         # วันเริ่มต้นข้อมูล (20 ปี)
+  end_date: "2024-12-31"           # วันสิ้นสุดข้อมูล
+  train_ratio: 0.70                # 70% สำหรับ training
+  val_ratio: 0.15                  # 15% สำหรับ validation
+  test_ratio: 0.15                 # 15% สำหรับ testing
+  timeframe: "1d"                  # Daily timeframe
+  raw_data_path: "data/raw/"
+  processed_data_path: "data/processed/"
+  models_path: "data/models/"
+
+# ======================================
+# พารามิเตอร์กลยุทธ์ Grid (Strategy)
+# ======================================
+strategy:
+  # Classic Grid Strategy
+  classic_grid:
+    num_grids: 10                  # จำนวน Grid levels
+    grid_spacing_pct: 0.02         # ระยะห่าง Grid (2%)
+    initial_capital: 100000        # เงินทุนเริ่มต้น (USD)
+    position_size_pct: 0.05        # ขนาด position ต่อ Grid (5%)
+    order_type: "limit"            # ประเภท order
+
+  # AI Adaptive Grid Strategy
+  adaptive_grid:
+    base_num_grids: 10             # จำนวน Grid เริ่มต้น
+    min_num_grids: 5               # จำนวน Grid ขั้นต่ำ
+    max_num_grids: 20              # จำนวน Grid สูงสุด
+    base_grid_spacing_pct: 0.02    # ระยะห่าง Grid เริ่มต้น (2%)
+    min_grid_spacing_pct: 0.005    # ระยะห่าง Grid ขั้นต่ำ (0.5%)
+    max_grid_spacing_pct: 0.05     # ระยะห่าง Grid สูงสุด (5%)
+    initial_capital: 100000
+    rebalance_frequency: "weekly"  # ความถี่การ rebalance
+
+  # ค่าปรับ Grid ตาม Regime
+  regime_adjustments:
+    trending:
+      num_grids_multiplier: 0.7    # ลด Grid ในตลาด Trending
+      spacing_multiplier: 1.5      # เพิ่มระยะห่างใน Trending
+      position_size_multiplier: 0.8
+    ranging:
+      num_grids_multiplier: 1.2    # เพิ่ม Grid ในตลาด Ranging
+      spacing_multiplier: 0.8      # ลดระยะห่างใน Ranging
+      position_size_multiplier: 1.2
+    volatile:
+      num_grids_multiplier: 0.5    # ลด Grid ในตลาด Volatile
+      spacing_multiplier: 2.0      # เพิ่มระยะห่างมากใน Volatile
+      position_size_multiplier: 0.5
+
+# ==================================
+# การบริหารความเสี่ยง (Risk Management)
+# ==================================
+risk:
+  # Stop Loss
+  stop_loss:
+    enabled: true
+    stop_loss_pct: 0.08            # Stop loss 8% จาก entry price
+    trailing_stop_enabled: true
+    trailing_stop_pct: 0.05        # Trailing stop 5%
+
+  # Drawdown Protection
+  drawdown_protection:
+    enabled: true
+    max_drawdown_pct: 0.15         # Max drawdown 15%
+    drawdown_reduce_threshold: 0.10  # ลด position เมื่อ DD > 10%
+    position_reduce_factor: 0.5    # ลด position ลง 50%
+
+  # Circuit Breaker
+  circuit_breaker:
+    enabled: true
+    max_daily_loss_pct: 0.03       # หยุดเมื่อขาดทุน 3% ต่อวัน
+    max_consecutive_losses: 5      # หยุดเมื่อขาดทุนติดต่อกัน 5 ครั้ง
+    cooldown_hours: 24             # พักระบบ 24 ชั่วโมง
+
+  # Position Sizing
+  position_sizing:
+    method: "kelly"                # วิธี: "fixed", "kelly", "fractional"
+    max_position_pct: 0.20         # Position สูงสุด 20% ของ capital
+    kelly_fraction: 0.25           # ใช้ 25% ของ Kelly value
+
+# ===========================
+# AI Model Configuration
+# ===========================
+models:
+  # Market Regime Detector (Random Forest)
+  regime_detector:
+    model_type: "random_forest"
+    n_estimators: 200
+    max_depth: 10
+    min_samples_split: 20
+    min_samples_leaf: 10
+    random_state: 42
+    n_jobs: -1
+    feature_importance_threshold: 0.01
+    model_save_path: "data/models/regime_detector.pkl"
+    labels:
+      0: "trending"
+      1: "ranging"
+      2: "volatile"
+
+  # Volatility Predictor (LSTM)
+  volatility_predictor:
+    model_type: "lstm"
+    sequence_length: 30            # ใช้ข้อมูล 30 วันย้อนหลัง
+    lstm_units: [64, 32]           # จำนวน units แต่ละ layer
+    dense_units: [16, 1]
+    dropout_rate: 0.2
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 100
+    patience: 15                   # Early stopping patience
+    validation_split: 0.2
+    model_save_path: "data/models/volatility_predictor.h5"
+
+# ===================================
+# เป้าหมาย Performance (Targets)
+# ===================================
+performance_targets:
+  annual_return_min: 0.20          # ผลตอบแทนขั้นต่ำ 20% ต่อปี
+  annual_return_target: 0.30       # เป้าหมาย 30% ต่อปี
+  sharpe_ratio_min: 1.8
+  sharpe_ratio_target: 2.5
+  max_drawdown_limit: -0.15        # Max drawdown ไม่เกิน -15%
+  win_rate_min: 0.65               # Win rate ขั้นต่ำ 65%
+  profit_factor_min: 1.8
+
+# ====================
+# Logging Settings
+# ====================
+logging:
+  level: "INFO"                    # DEBUG, INFO, WARNING, ERROR
+  log_file: "logs/trading_bot.log"
+  max_file_size_mb: 10
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  console_output: true
+
+# ====================
+# Backtesting Settings
+# ====================
+backtesting:
+  initial_capital: 100000
+  commission_pct: 0.001            # ค่าคอมมิสชัน 0.1%
+  slippage_pct: 0.0005             # Slippage 0.05%
+  risk_free_rate: 0.05             # อัตราดอกเบี้ยปลอดความเสี่ยง 5%
+  benchmark: "GLD_buyhold"
+  walk_forward:
+    train_window_months: 18        # Train window 18 เดือน
+    test_window_months: 3          # Test window 3 เดือน
+    step_months: 3                 # ก้าวทีละ 3 เดือน
