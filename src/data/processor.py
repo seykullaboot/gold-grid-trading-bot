@@ -92,12 +92,12 @@ class DataProcessor:
 
         if method == "ffill":
             # Forward fill (เติมค่าจากวันก่อนหน้า) — เหมาะสำหรับข้อมูลราคา
-            df = df.fillna(method="ffill", limit=max_gap)
+            df = df.ffill(limit=max_gap)
             # Backward fill สำหรับ missing ต้นข้อมูล
-            df = df.fillna(method="bfill", limit=max_gap)
+            df = df.bfill(limit=max_gap)
 
         elif method == "bfill":
-            df = df.fillna(method="bfill", limit=max_gap)
+            df = df.bfill(limit=max_gap)
 
         elif method == "interpolate":
             # Linear interpolation
